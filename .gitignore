@@ -1,0 +1,48 @@
+# ── Virtual Environments ──────────────────────────────────────────────
+venv/
+env/
+.env
+.venv/
+
+# ── Python & Bytecode ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# ── IDE & Editor ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Data & Datasets ───────────────────────────────────────────────────
+# Ignore raw and processed datasets to prevent pushing sensitive/large data
+data/*.csv
+data/*.json
+!data/.keep
+
+# ── Machine Learning Artifacts ────────────────────────────────────────
+# Ignore model weights, scalers, and ONNX exports
+outputs/*.pt
+outputs/*.onnx
+outputs/*.pkl
+outputs/*.json
+
+# ── Zero-Knowledge Proof (EZKL) Artifacts ─────────────────────────────
+# Ignore cryptographic keys, SRS files, circuits, and proofs
+outputs/zkp/*.srs
+outputs/zkp/*.key
+outputs/zkp/*.compiled
+outputs/zkp/*.json
+outputs/zkp/_bench_*
+
+# ── Logs & Temporary Files ────────────────────────────────────────────
+*.log
+tmp/
+temp/
+
+# ── Miscellaneous ─────────────────────────────────────────────────────
+config.py

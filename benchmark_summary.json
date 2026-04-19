@@ -1,0 +1,17 @@
+{
+  "num_samples": 4,
+  "avg_witness_time_s": 0.2759,
+  "avg_proof_time_s": 2.4702,
+  "std_proof_time_s": 0.182,
+  "avg_verify_time_s": 0.2921,
+  "avg_total_zkp_time_s": 3.0383,
+  "avg_proof_size_kb": 20.03,
+  "std_proof_size_kb": 0.027538,
+  "proof_size_is_constant": false,
+  "avg_quant_error": 1.6940926054354067e+72,
+  "max_quant_error": 3.9580854369443676e+72,
+  "label_match_rate": 0.5,
+  "avg_overhead_ratio": 7964.6,
+  "avg_fp32_latency_ms": 0.3459,
+  "proof_validity_rate": 1.0
+}

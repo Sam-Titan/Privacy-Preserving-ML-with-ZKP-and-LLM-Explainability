@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy-Preserving Heart Disease Screening</title>
+<style>
+  /* ── Reset & base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  /* ── Layout ───────────────────────────────────────────── */
+  .wrapper { max-width: 860px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.75rem; font-weight: 700; color: #f8fafc; }
+  header p  { margin-top: .5rem; color: #94a3b8; font-size: .95rem; }
+
+  .badges { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+  .badge {
+    font-size: .75rem; font-weight: 600; padding: .25rem .75rem;
+    border-radius: 9999px; letter-spacing: .03em;
+  }
+  .badge-blue   { background: #1e3a5f; color: #60a5fa; }
+  .badge-green  { background: #14402f; color: #4ade80; }
+  .badge-purple { background: #2d1b69; color: #a78bfa; }
+
+  /* ── Card ─────────────────────────────────────────────── */
+  .card {
+    background: #1e2330;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .card h2 { font-size: 1rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1.25rem;
+             display: flex; align-items: center; gap: .5rem; }
+  .card h2 span { font-size: 1.1rem; }
+
+  /* ── Form grid ────────────────────────────────────────── */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: .3rem; }
+  label { font-size: .8rem; color: #94a3b8; font-weight: 500; }
+  input, select {
+    background: #0f1117; border: 1px solid #374151; color: #e2e8f0;
+    border-radius: 7px; padding: .55rem .75rem; font-size: .9rem;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus { outline: none; border-color: #3b82f6; }
+  select option { background: #1e2330; }
+
+  /* ── Submit button ────────────────────────────────────── */
+  .btn-run {
+    width: 100%; margin-top: 1.5rem; padding: .85rem;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff; font-size: 1rem; font-weight: 700;
+    border: none; border-radius: 8px; cursor: pointer;
+    letter-spacing: .04em; transition: opacity .2s;
+  }
+  .btn-run:hover  { opacity: .88; }
+  .btn-run:active { opacity: .75; }
+  .btn-run:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Spinner ──────────────────────────────────────────── */
+  .spinner {
+    display: none; margin: 1.5rem auto 0; width: 40px; height: 40px;
+    border: 4px solid #374151; border-top-color: #3b82f6;
+    border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-msg { text-align: center; color: #94a3b8; font-size: .85rem; margin-top: .75rem; }
+
+  /* ── Result sections ──────────────────────────────────── */
+  #results { display: none; }
+
+  .prediction-box {
+    padding: 1.25rem 1.5rem; border-radius: 10px;
+    margin-bottom: 1.25rem; border: 1px solid;
+  }
+  .pred-positive { background: #2d1b1b; border-color: #ef4444; }
+  .pred-negative { background: #1a2d1b; border-color: #22c55e; }
+
+  .pred-label { font-size: 1.2rem; font-weight: 700; }
+  .pred-positive .pred-label { color: #f87171; }
+  .pred-negative .pred-label { color: #4ade80; }
+
+  .pred-conf { font-size: .85rem; color: #94a3b8; margin-top: .3rem; }
+
+  .conf-bar-wrap { margin-top: .75rem; background: #374151; border-radius: 9999px; height: 8px; overflow: hidden; }
+  .conf-bar { height: 100%; border-radius: 9999px; transition: width .6s ease; }
+  .pred-positive .conf-bar { background: linear-gradient(90deg, #ef4444, #f87171); }
+  .pred-negative .conf-bar { background: linear-gradient(90deg, #22c55e, #4ade80); }
+
+  /* ── ZKP metrics ──────────────────────────────────────── */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .85rem; }
+  .metric-box {
+    background: #0f1117; border: 1px solid #374151;
+    border-radius: 8px; padding: .75rem 1rem; text-align: center;
+  }
+  .metric-val { font-size: 1.3rem; font-weight: 700; color: #60a5fa; }
+  .metric-label { font-size: .72rem; color: #64748b; margin-top: .2rem; }
+
+  .proof-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .4rem 1rem; border-radius: 9999px; font-size: .82rem; font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .proof-valid   { background: #14402f; color: #4ade80; border: 1px solid #166534; }
+  .proof-invalid { background: #2d1b1b; color: #f87171; border: 1px solid #991b1b; }
+
+  /* ── LLM explanation ─────────────────────────────────── */
+  .explanation {
+    font-size: .9rem; line-height: 1.75; color: #cbd5e1;
+    white-space: pre-wrap; font-family: inherit;
+  }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  footer { text-align: center; color: #475569; font-size: .78rem; margin-top: 2.5rem; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <h1>🫀 Privacy-Preserving Heart Disease Screening</h1>
+    <p>Your data never leaves your device. A Zero-Knowledge Proof guarantees result integrity.</p>
+    <div class="badges">
+      <span class="badge badge-blue">ZK-SNARK (EZKL)</span>
+      <span class="badge badge-green">Groq LLM Explainer</span> <span class="badge badge-purple">UCI Heart Disease</span>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2><span>📋</span> Patient Information</h2>
+    <div class="grid">
+
+      <div class="field">
+        <label>Age (years)</label>
+        <input type="number" id="age" value="63" min="1" max="120" />
+      </div>
+
+      <div class="field">
+        <label>Sex</label>
+        <select id="sex">
+          <option value="1">Male</option>
+          <option value="0">Female</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Chest Pain Type</label>
+        <select id="cp">
+          <option value="0">Typical Angina</option>
+          <option value="1">Atypical Angina</option>
+          <option value="2">Non-anginal Pain</option>
+          <option value="3" selected>Asymptomatic</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Resting BP (mm Hg)</label>
+        <input type="number" id="trestbps" value="145" min="50" max="250" />
+      </div>
+
+      <div class="field">
+        <label>Serum Cholesterol (mg/dl)</label>
+        <input type="number" id="chol" value="233" min="50" max="700" />
+      </div>
+
+      <div class="field">
+        <label>Fasting Blood Sugar &gt;120 mg/dl</label>
+        <select id="fbs">
+          <option value="1" selected>Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Resting ECG</label>
+        <select id="restecg">
+          <option value="0" selected>Normal</option>
+          <option value="1">ST-T Abnormality</option>
+          <option value="2">LV Hypertrophy</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Max Heart Rate Achieved (bpm)</label>
+        <input type="number" id="thalach" value="150" min="50" max="250" />
+      </div>
+
+      <div class="field">
+        <label>Exercise-Induced Angina</label>
+        <select id="exang">
+          <option value="0" selected>No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>ST Depression (Oldpeak)</label>
+        <input type="number" id="oldpeak" value="2.3" step="0.1" min="0" max="10" />
+      </div>
+
+      <div class="field">
+        <label>Slope of Peak ST Segment</label>
+        <select id="slope">
+          <option value="0" selected>Upsloping</option>
+          <option value="1">Flat</option>
+          <option value="2">Downsloping</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Major Vessels (Fluoroscopy)</label>
+        <select id="ca">
+          <option value="0" selected>0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+
+      <div class="field" style="grid-column: 1 / -1">
+        <label>Thalassemia</label>
+        <select id="thal">
+          <option value="0">Normal</option>
+          <option value="1" selected>Fixed Defect</option>
+          <option value="2">Reversible Defect</option>
+        </select>
+      </div>
+
+    </div><button class="btn-run" id="runBtn" onclick="runPipeline()">
+      🔐 Run Private Screening
+    </button>
+    <div class="spinner" id="spinner"></div>
+    <p class="status-msg" id="statusMsg"></p>
+  </div><div id="results">
+
+    <div class="card">
+      <h2><span>🎯</span> Prediction</h2>
+      <div id="predBox" class="prediction-box">
+        <div class="pred-label" id="predLabel"></div>
+        <div class="pred-conf"  id="predConf"></div>
+        <div class="conf-bar-wrap"><div class="conf-bar" id="confBar"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span>🔒</span> Zero-Knowledge Proof</h2>
+      <div id="proofBadge" class="proof-badge"></div>
+      <div class="metrics">
+        <div class="metric-box">
+          <div class="metric-val" id="mProofTime">—</div>
+          <div class="metric-label">Proof Gen (s)</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" id="mWitnessTime">—</div>
+          <div class="metric-label">Witness Gen (s)</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" id="mVerifyTime">—</div>
+          <div class="metric-label">Verify Time (s)</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" id="mProofSize">—</div>
+          <div class="metric-label">Proof Size (KB)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span>🤖</span> Groq Explanation</h2> <pre class="explanation" id="explanation"></pre>
+    </div>
+
+  </div><footer>
+    Patient data is processed privately · ZKP guarantees result integrity without data exposure<br/>
+    Powered by EZKL · Groq API · PyTorch · FastAPI </footer>
+</div><script>
+  const API = 'http://localhost:8000';
+
+  const statusMessages = [
+    'Preprocessing patient data locally…',
+    'Running private ML inference…',
+    'Generating Zero-Knowledge Proof…',
+    'Verifying proof cryptographically…',
+    'Requesting Groq explanation…', // UPDATED STATUS
+  ];
+
+  async function runPipeline() {
+    const btn = document.getElementById('runBtn');
+    const spinner = document.getElementById('spinner');
+    const statusMsg = document.getElementById('statusMsg');
+    const results = document.getElementById('results');
+
+    // Gather inputs
+    const payload = {
+      age:      parseFloat(document.getElementById('age').value),
+      sex:      parseInt(document.getElementById('sex').value),
+      cp:       parseInt(document.getElementById('cp').value),
+      trestbps: parseFloat(document.getElementById('trestbps').value),
+      chol:     parseFloat(document.getElementById('chol').value),
+      fbs:      parseInt(document.getElementById('fbs').value),
+      restecg:  parseInt(document.getElementById('restecg').value),
+      thalach:  parseFloat(document.getElementById('thalach').value),
+      exang:    parseInt(document.getElementById('exang').value),
+      oldpeak:  parseFloat(document.getElementById('oldpeak').value),
+      slope:    parseInt(document.getElementById('slope').value),
+      ca:       parseInt(document.getElementById('ca').value),
+      thal:     parseInt(document.getElementById('thal').value),
+    };
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    results.style.display = 'none';
+
+    // Cycle through status messages while waiting
+    let msgIdx = 0;
+    statusMsg.textContent = statusMessages[0];
+    const msgTimer = setInterval(() => {
+      msgIdx = (msgIdx + 1) % statusMessages.length;
+      statusMsg.textContent = statusMessages[msgIdx];
+    }, 3500);
+
+    try {
+      const res  = await fetch(`${API}/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Server error');
+      }
+
+      const data = await res.json();
+      renderResults(data);
+
+    } catch (e) {
+      statusMsg.textContent = '⚠️ Error: ' + e.message;
+    } finally {
+      clearInterval(msgTimer);
+      btn.disabled = false;
+      spinner.style.display = 'none';
+    }
+  }
+
+  function renderResults(data) {
+    const { prediction, zkp, explanation } = data;
+
+    // ── Prediction ─────────────────────────────────────────────────────
+    const positive = prediction.probability >= 0.5;
+    const box   = document.getElementById('predBox');
+    box.className = 'prediction-box ' + (positive ? 'pred-positive' : 'pred-negative');
+    document.getElementById('predLabel').textContent = prediction.label;
+    document.getElementById('predConf').textContent =
+      `Confidence: ${prediction.confidence_pct}%  (raw probability: ${prediction.probability})`;
+    document.getElementById('confBar').style.width = prediction.confidence_pct + '%';
+
+    // ── ZKP ─────────────────────────────────────────────────────────────
+    const badge = document.getElementById('proofBadge');
+    badge.className = 'proof-badge ' + (zkp.proof_valid ? 'proof-valid' : 'proof-invalid');
+    badge.textContent = zkp.proof_valid
+      ? '✓  Proof Verified — Computation Integrity Confirmed'
+      : '✗  Proof Invalid — Result May Not Be Trustworthy';
+
+    document.getElementById('mProofTime').textContent   = zkp.proof_time_s;
+    document.getElementById('mWitnessTime').textContent = zkp.witness_time_s;
+    document.getElementById('mVerifyTime').textContent  = zkp.verify_time_s;
+    document.getElementById('mProofSize').textContent   = zkp.proof_size_kb;
+
+    // ── Explanation ──────────────────────────────────────────────────────
+    document.getElementById('explanation').textContent = explanation;
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('statusMsg').textContent = '';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  }
+  
+</script>
+</body>
+</html>
