@@ -260,7 +260,7 @@ def extract_circuit_output(witness_path: str):
 # Main benchmark loop
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_benchmark(num_samples: int = 10):
+def run_benchmark(num_samples: int = 920):
     print("=" * 62)
     print(f"  ZK-SNARK BENCHMARK  ({num_samples} samples)")
     print("=" * 62)
@@ -452,7 +452,7 @@ def run_benchmark(num_samples: int = 10):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--samples", type=int, default=10,
+    parser.add_argument("--samples", type=int, default=920,
                         help="Number of dataset samples (default: 10)")
     args = parser.parse_args()
     run_benchmark(num_samples=args.samples)
