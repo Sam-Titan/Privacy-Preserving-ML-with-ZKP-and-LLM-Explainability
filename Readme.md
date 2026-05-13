@@ -6,7 +6,7 @@ This project leverages **Zero-Knowledge Proofs (ZK-SNARKs)** via EZKL to cryptog
 
 ---
 
-## 🏗️ System Architecture & Workflow
+##  System Architecture & Workflow
 
 1. **Client-Side Preprocessing (`models/preprocess.py`)**: Patient features are mapped and scaled locally using a fitted `StandardScaler`.
 2. **Zero-Knowledge Inference**: The input is passed through a compiled ZK-circuit (`outputs/zkp/model.compiled`) of the PyTorch neural network.
@@ -16,7 +16,7 @@ This project leverages **Zero-Knowledge Proofs (ZK-SNARKs)** via EZKL to cryptog
 
 ---
 
-## 📊 Empirical Benchmarks
+## Empirical Benchmarks
 
 The system was evaluated using a 13-feature UCI Heart Disease dataset across 920 samples. Below are the empirical results generated from our benchmarking suite.
 
@@ -47,7 +47,7 @@ Tested with `logrows=15` over the BN254 elliptic curve. Generating the Zero-Know
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 * Python 3.10+
