@@ -90,7 +90,7 @@ async def serve_frontend():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "model": "HeartDiseaseNet", "llm": "llama3 (Ollama)"}
+    return {"status": "ok", "model": "HeartDiseaseNet", "llm": "groq/llama3-8b-8192", "version": "1.0.0"}
 
 
 @app.post("/predict")
